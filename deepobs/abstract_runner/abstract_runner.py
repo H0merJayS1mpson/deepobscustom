@@ -56,6 +56,7 @@ class Runner(abc.ABC):
 
     def run(self,
             testproblem=None,
+            initializations=None,
             hyperparams=None,
             batch_size=None,
             num_epochs=None,
@@ -106,6 +107,7 @@ class Runner(abc.ABC):
         """
         exists, matches = self.run_exists(
             testproblem=testproblem,
+            initializations=initializations,
             hyperparams=hyperparams,
             batch_size=batch_size,
             num_epochs=num_epochs,
@@ -125,6 +127,7 @@ class Runner(abc.ABC):
         if require_run:
             args = self.parse_args(
                 testproblem,
+                initializations,
                 hyperparams,
                 batch_size,
                 num_epochs,
@@ -146,6 +149,7 @@ class Runner(abc.ABC):
 
     def _run(self,
              testproblem=None,
+             initializations=None,
              hyperparams=None,
              batch_size=None,
              num_epochs=None,
@@ -173,7 +177,7 @@ class Runner(abc.ABC):
             global_config.set_data_dir(data_dir)
 
         run_directory, file_name = self.generate_output_directory_name(
-            testproblem, batch_size, num_epochs, weight_decay, random_seed,
+            testproblem, initializations, batch_size, num_epochs, weight_decay, random_seed,
             output_dir, hyperparams, **training_params)
 
         if tb_log:
@@ -184,7 +188,7 @@ class Runner(abc.ABC):
                 os.makedirs(run_directory, exist_ok=True)
                 tb_log_dir = run_directory
 
-        tproblem = self.create_testproblem(testproblem, batch_size,
+        tproblem = self.create_testproblem(testproblem, initializations, batch_size,
                                            weight_decay, random_seed)
 
         output = self.training(tproblem, hyperparams, num_epochs,
@@ -199,11 +203,11 @@ class Runner(abc.ABC):
         if not no_logs:
             os.makedirs(run_directory, exist_ok=True)
             self.write_output(output, run_directory, file_name)
-
         return output
 
     def run_exists(self,
                    testproblem=None,
+                   initializations=None,
                    hyperparams=None,
                    batch_size=None,
                    num_epochs=None,
@@ -229,6 +233,7 @@ class Runner(abc.ABC):
         """
         args = self.parse_args(
             testproblem,
+            initializations,
             hyperparams,
             batch_size,
             num_epochs,
@@ -247,6 +252,7 @@ class Runner(abc.ABC):
 
     def _run_exists(self,
                     testproblem=None,
+                    initializations=None,
                     hyperparams=None,
                     batch_size=None,
                     num_epochs=None,
@@ -267,7 +273,7 @@ class Runner(abc.ABC):
             testproblem, num_epochs)
 
         run_directory, _ = self.generate_output_directory_name(
-            testproblem, batch_size, num_epochs, weight_decay, random_seed,
+            testproblem, initializations, batch_size, num_epochs, weight_decay, random_seed,
             output_dir, hyperparams, **training_params)
         file_regex = "{}*.json".format(self._filename_no_date(random_seed))
         pattern = os.path.join(run_directory, file_regex)
@@ -354,6 +360,7 @@ class Runner(abc.ABC):
         if hyperparams is None:  # if no hyperparams dict is passed to run()
             for hp_name, hp_specification in self._hyperparameter_names.items(
             ):
+                print(hp_name)
                 _add_hp_to_argparse(parser, self._optimizer_name,
                                     hp_specification, hp_name)
 
@@ -407,7 +414,7 @@ class Runner(abc.ABC):
                                                   ) else str(hp_value))
         return run_folder_name
 
-    def parse_args(self, testproblem, hyperparams, batch_size, num_epochs,
+    def parse_args(self, testproblem, initializations, hyperparams, batch_size, num_epochs,
                    random_seed, data_dir, output_dir, weight_decay, no_logs,
                    train_log_interval, print_train_iter, tb_log, tb_log_dir,
                    training_params):
@@ -440,6 +447,11 @@ class Runner(abc.ABC):
             parser.add_argument('testproblem')
         else:
             args['testproblem'] = testproblem
+
+        if initializations is None:
+            args['initializations'] = None
+        else:
+            args['initializations'] = initializations
 
         if weight_decay is None:
             parser.add_argument("--weight_decay",
@@ -563,13 +575,15 @@ class Runner(abc.ABC):
 
         return args
 
-    def generate_output_directory_name(self, testproblem, batch_size,
+    def generate_output_directory_name(self, testproblem, initializations, batch_size,
                                        num_epochs, weight_decay, random_seed,
                                        output_dir, optimizer_hyperparams,
                                        **training_params):
         # add everything mandatory to the name
         run_folder_name = "num_epochs__" + str(
             num_epochs) + "__batch_size__" + str(batch_size)
+        if initializations is not None:
+            run_folder_name += "__initializations__{0:s}" + str(initializations)
         if weight_decay is not None:
             run_folder_name += "__weight_decay__{0:s}".format(
                 float2str(weight_decay))

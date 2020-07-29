@@ -11,19 +11,21 @@ from .testproblems_utils import tfconv2d_transpose
 from .testproblems_utils import mean_allcnnc
 from .testproblems_utils import residual_block
 from .testproblems_utils import _truncated_normal_init
+from ast import literal_eval
 
-
+#pass initialization method and params as dict.
 class net_mnist_logreg(nn.Sequential):
-    def __init__(self, num_outputs):
+    def __init__(self, num_outputs, initializations=None):
         super(net_mnist_logreg, self).__init__()
 
         self.add_module('flatten', flatten())
         self.add_module('dense', nn.Linear(in_features=784, out_features=num_outputs))
-
         # init
         nn.init.constant_(self.dense.bias, 0.0)
-        nn.init.constant_(self.dense.weight, 0.0)
-
+        if initializations is None:
+            (eval("nn.init.constant_")(*[self.dense.weight, 0]))
+        else:
+            (eval(initializations['dense'])(*[self.dense.weight, 0]))
 
 class net_cifar10_3c3d(nn.Sequential):
     """  Basic conv net for cifar10/100. The network consists of
@@ -33,9 +35,9 @@ class net_cifar10_3c3d(nn.Sequential):
   The weight matrices are initialized using Xavier initialization and the biases
   are initialized to ``0.0``."""
 
-    def __init__(self, num_outputs):
+    def __init__(self, num_outputs, initializations=None):
         """Args:
-            num_outputs (int): The numer of outputs (i.e. target classes)."""
+            num_outputs (int): The number of outputs (i.e. target classes)."""
         super(net_cifar10_3c3d, self).__init__()
 
         self.add_module('conv1', tfconv2d(in_channels = 3, out_channels = 64, kernel_size = 5))
@@ -80,7 +82,7 @@ class net_mnist_2c2d(nn.Sequential):
   The weight matrices are initialized with truncated normal (standard deviation
   of ``0.05``) and the biases are initialized to ``0.05``."""
 
-    def __init__(self, num_outputs):
+    def __init__(self, num_outputs, initializations=None):
         """Args:
             num_outputs (int): The numer of outputs (i.e. target classes)."""
 
@@ -101,7 +103,7 @@ class net_mnist_2c2d(nn.Sequential):
         self.add_module('dense2', nn.Linear(in_features = 1024, out_features = num_outputs))
 
         # init the layers
-        for module in self.modules():
+        for module in (self.modules()):
             if isinstance(module, nn.Conv2d):
                 nn.init.constant_(module.bias, 0.05)
                 module.weight.data = _truncated_normal_init(module.weight.data, mean = 0, stddev=0.05)
@@ -127,7 +129,7 @@ class net_vae(nn.Module):
     - Dropout layers after the first two deconvolutional layer with a rate of ``0.2``.
     - A final dense layer with ``28 x 28`` units and sigmoid activation.
 """
-    def __init__(self, n_latent):
+    def __init__(self, n_latent, initializations=None):
         """Args:
             n_latent (int): Size of the latent space."""
         super(net_vae, self).__init__()
@@ -225,7 +227,7 @@ class net_vae(nn.Module):
 
 
 class net_vgg(nn.Sequential):
-    def __init__(self, num_outputs, variant):
+    def __init__(self, num_outputs, variant, initializations=None):
         super(net_vgg, self).__init__()
 
         self.add_module('upsampling', nn.UpsamplingBilinear2d(size= (224, 224)))
@@ -299,7 +301,7 @@ class net_vgg(nn.Sequential):
 
 
 class net_cifar100_allcnnc(nn.Sequential):
-    def __init__(self):
+    def __init__(self, initializations=None):
         super(net_cifar100_allcnnc, self).__init__()
 
         self.add_module('dropout1', nn.Dropout(p = 0.2))
@@ -338,7 +340,7 @@ class net_cifar100_allcnnc(nn.Sequential):
                 nn.init.xavier_normal_(module.weight)
 
 class net_wrn(nn.Sequential):
-    def __init__(self, num_residual_blocks, widening_factor, num_outputs, bn_momentum=0.9):
+    def __init__(self, num_residual_blocks, widening_factor, num_outputs, bn_momentum=0.9, initializations=None):
         super(net_wrn, self).__init__()
 
         # initial conv
@@ -383,7 +385,7 @@ class net_wrn(nn.Sequential):
                 nn.init.constant_(module.bias, 0.0)
 
 class net_char_rnn(nn.Module):
-    def __init__(self, seq_len, hidden_dim, vocab_size, num_layers):
+    def __init__(self, seq_len, hidden_dim, vocab_size, num_layers, initializations=None):
         super(net_char_rnn, self).__init__()
 
         self.embedding = nn.Embedding(num_embeddings=vocab_size, embedding_dim=hidden_dim)
@@ -412,7 +414,7 @@ class net_quadratic_deep(nn.Module):
     The parameters are initialized to 1.
 """
 
-    def __init__(self, dim, Hessian):
+    def __init__(self, dim, Hessian, initializations=None):
         """Args:
             dim (int): Number of parameters of the network (Dimension of the quadratic problem).
             Hessian (np.array): The matrix for the quadratic form."""
@@ -437,7 +439,7 @@ class net_mlp(nn.Sequential):
       activation.
     - The biases are initialized to ``0.0`` and the weight matrices with
       truncated normal (standard deviation of ``3e-2``)"""
-    def __init__(self, num_outputs):
+    def __init__(self, num_outputs, initializations=None):
         super(net_mlp, self).__init__()
 
         self.add_module('flatten', flatten())

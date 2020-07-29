@@ -2,6 +2,7 @@
 """Base class for DeepOBS test problems."""
 import torch
 import abc
+from .testproblems_utils import flatten
 from .. import config
 
 
@@ -34,7 +35,7 @@ class TestProblem(abc.ABC):
     set_up: Sets all public attributes.
   """
 
-    def __init__(self, batch_size, weight_decay=None):
+    def __init__(self, batch_size, weight_decay=None, initialization=None):
         """Creates a new test problem instance.
 
     Args:
@@ -54,6 +55,7 @@ class TestProblem(abc.ABC):
         self.loss_function = None
         self.net = None
         self.regularization_groups = None
+        self.initialization = initialization
 
         self._batch_count = 0
 
