@@ -13,6 +13,16 @@ from .testproblems_utils import residual_block
 from .testproblems_utils import _truncated_normal_init
 from ast import literal_eval
 
+class net_mnist_logreg(nn.Sequential):
+    def __init__(self, num_outputs):
+        super(net_mnist_logreg, self).__init__()
+
+        self.add_module('flatten', flatten())
+        self.add_module('dense', nn.Linear(in_features=784, out_features=num_outputs))
+
+        # init
+
+
 #pass initialization method and params as dict.
 class net_mnist_logreg(nn.Sequential):
     def __init__(self, num_outputs, initializations=None):
@@ -22,10 +32,10 @@ class net_mnist_logreg(nn.Sequential):
         self.add_module('dense', nn.Linear(in_features=784, out_features=num_outputs))
         # init
         nn.init.constant_(self.dense.bias, 0.0)
-        if initializations is None:
-            (eval("nn.init.constant_")(*[self.dense.weight, 0]))
+        if 'dense' in initializations:
+            (eval(initializations['dense'][0])(*[self.dense.weight, *initializations['dense'][1:]]))
         else:
-            (eval(initializations['dense'])(*[self.dense.weight, 0]))
+            nn.init.constant_(self.dense.weight, 0.0)
 
 class net_cifar10_3c3d(nn.Sequential):
     """  Basic conv net for cifar10/100. The network consists of
@@ -63,12 +73,19 @@ class net_cifar10_3c3d(nn.Sequential):
         # init the layers
         for module in self.modules():
             if isinstance(module, nn.Conv2d):
-                nn.init.constant_(module.bias, 0.0)
-                nn.init.xavier_normal_(module.weight)
-
+                if 'Conv2d' in initializations:
+                    nn.init.constant_(module.bias, 0.0)
+                    (eval(initializations['Conv2d'][0])(*[module.weight, *initializations['Conv2d'][1:]]))
+                else:
+                    nn.init.constant_(module.bias, 0.0)
+                    nn.init.xavier_normal_(module.weight)
             if isinstance(module, nn.Linear):
-                nn.init.constant_(module.bias, 0.0)
-                nn.init.xavier_uniform_(module.weight)
+                if 'Linear' in initializations:
+                    nn.init.constant_(module.bias, 0.0)
+                    (eval(initializations['Linear'][0])(*[module.weight, *initializations['Linear'][1:]]))
+                else:
+                    nn.init.constant_(module.bias, 0.0)
+                    nn.init.xavier_uniform_(module.weight)
 
 
 class net_mnist_2c2d(nn.Sequential):
@@ -105,12 +122,20 @@ class net_mnist_2c2d(nn.Sequential):
         # init the layers
         for module in (self.modules()):
             if isinstance(module, nn.Conv2d):
-                nn.init.constant_(module.bias, 0.05)
-                module.weight.data = _truncated_normal_init(module.weight.data, mean = 0, stddev=0.05)
-
+                if 'Conv2d' in initializations:
+                    nn.init.constant_(module.bias, 0.0)
+                    (eval(initializations['Conv2d'][0])(*[module.weight, *initializations['Conv2d'][1:]]))
+                else:
+                    nn.init.constant_(module.bias, 0.05)
+                    module.weight.data = _truncated_normal_init(module.weight.data, mean=0, stddev=0.05)
             if isinstance(module, nn.Linear):
-                nn.init.constant_(module.bias, 0.05)
-                module.weight.data = _truncated_normal_init(module.weight.data, mean = 0, stddev=0.05)
+                if 'Linear' in initializations:
+                    nn.init.constant_(module.bias, 0.0)
+                    (eval(initializations['Linear'][0])(*[module.weight, *initializations['Linear'][1:]]))
+                else:
+                    nn.init.constant_(module.bias, 0.05)
+                    module.weight.data = _truncated_normal_init(module.weight.data, mean=0, stddev=0.05)
+
 
 
 class net_vae(nn.Module):
@@ -167,14 +192,26 @@ class net_vae(nn.Module):
         # init the layers
         for module in self.modules():
             if isinstance(module, nn.Conv2d):
-                nn.init.constant_(module.bias, 0.0)
-                nn.init.xavier_uniform_(module.weight)
+                if 'Conv2d' in initializations:
+                    nn.init.constant_(module.bias, 0.0)
+                    (eval(initializations['Conv2d'][0])(*[module.weight, *initializations['Conv2d'][1:]]))
+                else:
+                    nn.init.constant_(module.bias, 0.0)
+                    nn.init.xavier_uniform_(module.weight)
             if isinstance(module, nn.ConvTranspose2d):
-                nn.init.constant_(module.bias, 0.0)
-                nn.init.xavier_uniform_(module.weight)
+                if 'ConvTranspose2d' in initializations:
+                    nn.init.constant_(module.bias, 0.0)
+                    (eval(initializations['ConvTranspose2d'][0])(*[module.weight, *initializations['ConvTranspose2d'][1:]]))
+                else:
+                    nn.init.constant_(module.bias, 0.0)
+                    nn.init.xavier_uniform_(module.weight)
             if isinstance(module, nn.Linear):
-                nn.init.constant_(module.bias, 0.0)
-                nn.init.xavier_uniform_(module.weight)
+                if 'Linear' in initializations:
+                    nn.init.constant_(module.bias, 0.0)
+                    (eval(initializations['Linear'][0])(*[module.weight, *initializations['Linear'][1:]]))
+                else:
+                    nn.init.constant_(module.bias, 0.0)
+                    nn.init.xavier_uniform_(module.weight)
 
     def encode(self, x):
         x = F.leaky_relu(self.conv1(x), negative_slope = 0.3)
@@ -292,12 +329,20 @@ class net_vgg(nn.Sequential):
         # init the layers
         for module in self.modules():
             if isinstance(module, nn.Conv2d):
-                nn.init.constant_(module.bias, 0.0)
-                nn.init.xavier_normal_(module.weight)
+                if 'Conv2d' in initializations:
+                    nn.init.constant_(module.bias, 0.0)
+                    (eval(initializations['Conv2d'][0])(*[module.weight, *initializations['Conv2d'][1:]]))
+                else:
+                    nn.init.constant_(module.bias, 0.0)
+                    nn.init.xavier_normal_(module.weight)
 
             if isinstance(module, nn.Linear):
-                nn.init.constant_(module.bias, 0.0)
-                nn.init.xavier_uniform_(module.weight)
+                if 'Linear' in initializations:
+                    nn.init.constant_(module.bias, 0.0)
+                    (eval(initializations['Linear'][0])(*[module.weight, *initializations['Linear'][1:]]))
+                else:
+                    nn.init.constant_(module.bias, 0.0)
+                    nn.init.xavier_uniform_(module.weight)
 
 
 class net_cifar100_allcnnc(nn.Sequential):
@@ -336,8 +381,12 @@ class net_cifar100_allcnnc(nn.Sequential):
         # init the layers
         for module in self.modules():
             if isinstance(module, nn.Conv2d):
-                nn.init.constant_(module.bias, 0.1)
-                nn.init.xavier_normal_(module.weight)
+                if 'Conv2d' in initializations:
+                    nn.init.constant_(module.bias, 0.0)
+                    (eval(initializations['Conv2d'][0])(*[module.weight, *initializations['Conv2d'][1:]]))
+                else:
+                    nn.init.constant_(module.bias, 0.1)
+                    nn.init.xavier_normal_(module.weight)
 
 class net_wrn(nn.Sequential):
     def __init__(self, num_residual_blocks, widening_factor, num_outputs, bn_momentum=0.9, initializations=None):
@@ -374,15 +423,23 @@ class net_wrn(nn.Sequential):
         # initialisation
         for module in self.modules():
             if isinstance(module, nn.Conv2d):
-                nn.init.xavier_uniform_(module.weight)
+                if 'Conv2d' in initializations:
+                    nn.init.constant_(module.bias, 0.0)
+                    (eval(initializations['Conv2d'][0])(*[module.weight, *initializations['Conv2d'][1:]]))
+                else:
+                    nn.init.xavier_uniform_(module.weight)
             if isinstance(module, nn.BatchNorm2d):
                 nn.init.constant_(module.weight, 1.0) # gamma
                 nn.init.constant_(module.bias, 0.0) # beta
                 nn.init.constant_(module.running_mean, 0.0)
                 nn.init.constant_(module.running_var, 1.0)
             if isinstance(module, nn.Linear):
-                nn.init.xavier_uniform_(module.weight)
-                nn.init.constant_(module.bias, 0.0)
+                if 'Linear' in initializations:
+                    nn.init.constant_(module.bias, 0.0)
+                    (eval(initializations['Linear'][0])(*[module.weight, *initializations['Linear'][1:]]))
+                else:
+                    nn.init.xavier_uniform_(module.weight)
+                    nn.init.constant_(module.bias, 0.0)
 
 class net_char_rnn(nn.Module):
     def __init__(self, seq_len, hidden_dim, vocab_size, num_layers, initializations=None):
@@ -453,5 +510,9 @@ class net_mlp(nn.Sequential):
 
         for module in self.modules():
             if isinstance(module, nn.Linear):
-                nn.init.constant_(module.bias, 0.0)
-                module.weight.data = _truncated_normal_init(module.weight.data, mean = 0, stddev=3e-2)
+                if 'Linear' in initializations:
+                    nn.init.constant_(module.bias, 0.0)
+                    (eval(initializations['Linear'][0])(*[module.weight, *initializations['Linear'][1:]]))
+                else:
+                    nn.init.constant_(module.bias, 0.0)
+                    module.weight.data = _truncated_normal_init(module.weight.data, mean = 0, stddev=3e-2)
