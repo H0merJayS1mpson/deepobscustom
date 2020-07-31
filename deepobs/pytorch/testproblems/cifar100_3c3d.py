@@ -40,11 +40,11 @@ class cifar100_3c3d(TestProblem):
     def __init__(self, batch_size, weight_decay=0.002):
         super(cifar100_3c3d, self).__init__(batch_size, weight_decay)
 
-    def set_up(self):
+    def set_up(self, initializations=None):
         """Set up the vanilla CNN test problem on Cifar-100."""
         self.data = cifar100(self._batch_size)
         self.loss_function = nn.CrossEntropyLoss
-        self.net = net_cifar10_3c3d(num_outputs=100)
+        self.net = net_cifar10_3c3d(num_outputs=100, initializations=initializations)
         self.net.to(self._device)
         self.regularization_groups = self.get_regularization_groups()
 

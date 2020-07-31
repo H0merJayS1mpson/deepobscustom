@@ -46,11 +46,11 @@ class cifar100_allcnnc(TestProblem):
 
         super(cifar100_allcnnc, self).__init__(batch_size, weight_decay)
 
-    def set_up(self):
+    def set_up(self, initializations=None):
         """Set up the All CNN C test problem on Cifar-100."""
         self.data = cifar100(self._batch_size)
         self.loss_function = nn.CrossEntropyLoss
-        self.net = net_cifar100_allcnnc()
+        self.net = net_cifar100_allcnnc(initializations=initializations)
         self.net.to(self._device)
         self.regularization_groups = self.get_regularization_groups()
 

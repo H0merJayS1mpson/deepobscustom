@@ -449,7 +449,7 @@ class Runner(abc.ABC):
             args['testproblem'] = testproblem
 
         if initializations is None:
-            args['initializations'] = None
+            pass
         else:
             args['initializations'] = initializations
 

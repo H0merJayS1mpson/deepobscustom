@@ -58,10 +58,10 @@ class mnist_vae(UnregularizedTestproblem):
 
         self.loss_function = vae_loss_function_factory
 
-    def set_up(self):
+    def set_up(self, initializations=None):
         """Sets up the vanilla CNN test problem on MNIST."""
         self.data = mnist(self._batch_size)
-        self.net = net_vae(n_latent = 8)
+        self.net = net_vae(n_latent=8, initializations=initializations)
         self.net.to(self._device)
         self.regularization_groups = self.get_regularization_groups()
 

@@ -38,11 +38,11 @@ class svhn_wrn164(TestProblem):
         """
         super(svhn_wrn164, self).__init__(batch_size, weight_decay)
 
-    def set_up(self):
+    def set_up(self, initializations=None):
         """Set up the Wide ResNet 16-4 test problem on SVHN."""
         self.data = svhn(self._batch_size, data_augmentation=True)
         self.loss_function = nn.CrossEntropyLoss
-        self.net = net_wrn(num_outputs=10, num_residual_blocks=2, widening_factor=4)
+        self.net = net_wrn(num_outputs=10, num_residual_blocks=2, widening_factor=4, initializations=initializations)
         self.net.to(self._device)
         self.regularization_groups = self.get_regularization_groups()
 

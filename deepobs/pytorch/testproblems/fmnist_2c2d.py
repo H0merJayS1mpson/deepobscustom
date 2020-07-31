@@ -51,10 +51,10 @@ class fmnist_2c2d(UnregularizedTestproblem):
                 RuntimeWarning
             )
 
-    def set_up(self):
+    def set_up(self, initializations=None):
         """Sets up the vanilla CNN test problem on Fashion-MNIST."""
         self.data = fmnist(self._batch_size)
         self.loss_function = nn.CrossEntropyLoss
-        self.net = net_mnist_2c2d(num_outputs=10)
+        self.net = net_mnist_2c2d(num_outputs=10, initializations=initializations)
         self.net.to(self._device)
         self.regularization_groups = self.get_regularization_groups()

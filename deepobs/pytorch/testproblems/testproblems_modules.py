@@ -13,15 +13,6 @@ from .testproblems_utils import residual_block
 from .testproblems_utils import _truncated_normal_init
 from ast import literal_eval
 
-class net_mnist_logreg(nn.Sequential):
-    def __init__(self, num_outputs):
-        super(net_mnist_logreg, self).__init__()
-
-        self.add_module('flatten', flatten())
-        self.add_module('dense', nn.Linear(in_features=784, out_features=num_outputs))
-
-        # init
-
 
 #pass initialization method and params as dict.
 class net_mnist_logreg(nn.Sequential):
@@ -32,7 +23,7 @@ class net_mnist_logreg(nn.Sequential):
         self.add_module('dense', nn.Linear(in_features=784, out_features=num_outputs))
         # init
         nn.init.constant_(self.dense.bias, 0.0)
-        if 'dense' in initializations:
+        if initializations is not None and 'dense' in initializations:
             (eval(initializations['dense'][0])(*[self.dense.weight, *initializations['dense'][1:]]))
         else:
             nn.init.constant_(self.dense.weight, 0.0)
@@ -73,14 +64,14 @@ class net_cifar10_3c3d(nn.Sequential):
         # init the layers
         for module in self.modules():
             if isinstance(module, nn.Conv2d):
-                if 'Conv2d' in initializations:
+                if initializations is not None and 'Conv2d' in initializations:
                     nn.init.constant_(module.bias, 0.0)
                     (eval(initializations['Conv2d'][0])(*[module.weight, *initializations['Conv2d'][1:]]))
                 else:
                     nn.init.constant_(module.bias, 0.0)
                     nn.init.xavier_normal_(module.weight)
             if isinstance(module, nn.Linear):
-                if 'Linear' in initializations:
+                if initializations is not None and 'Linear' in initializations:
                     nn.init.constant_(module.bias, 0.0)
                     (eval(initializations['Linear'][0])(*[module.weight, *initializations['Linear'][1:]]))
                 else:
@@ -122,14 +113,14 @@ class net_mnist_2c2d(nn.Sequential):
         # init the layers
         for module in (self.modules()):
             if isinstance(module, nn.Conv2d):
-                if 'Conv2d' in initializations:
+                if initializations is not None and 'Conv2d' in initializations:
                     nn.init.constant_(module.bias, 0.0)
                     (eval(initializations['Conv2d'][0])(*[module.weight, *initializations['Conv2d'][1:]]))
                 else:
                     nn.init.constant_(module.bias, 0.05)
                     module.weight.data = _truncated_normal_init(module.weight.data, mean=0, stddev=0.05)
             if isinstance(module, nn.Linear):
-                if 'Linear' in initializations:
+                if initializations is not None and 'Linear' in initializations:
                     nn.init.constant_(module.bias, 0.0)
                     (eval(initializations['Linear'][0])(*[module.weight, *initializations['Linear'][1:]]))
                 else:
@@ -192,21 +183,21 @@ class net_vae(nn.Module):
         # init the layers
         for module in self.modules():
             if isinstance(module, nn.Conv2d):
-                if 'Conv2d' in initializations:
+                if initializations is not None and 'Conv2d' in initializations:
                     nn.init.constant_(module.bias, 0.0)
                     (eval(initializations['Conv2d'][0])(*[module.weight, *initializations['Conv2d'][1:]]))
                 else:
                     nn.init.constant_(module.bias, 0.0)
                     nn.init.xavier_uniform_(module.weight)
             if isinstance(module, nn.ConvTranspose2d):
-                if 'ConvTranspose2d' in initializations:
+                if initializations is not None and 'ConvTranspose2d' in initializations:
                     nn.init.constant_(module.bias, 0.0)
                     (eval(initializations['ConvTranspose2d'][0])(*[module.weight, *initializations['ConvTranspose2d'][1:]]))
                 else:
                     nn.init.constant_(module.bias, 0.0)
                     nn.init.xavier_uniform_(module.weight)
             if isinstance(module, nn.Linear):
-                if 'Linear' in initializations:
+                if initializations is not None and 'Linear' in initializations:
                     nn.init.constant_(module.bias, 0.0)
                     (eval(initializations['Linear'][0])(*[module.weight, *initializations['Linear'][1:]]))
                 else:
@@ -329,7 +320,7 @@ class net_vgg(nn.Sequential):
         # init the layers
         for module in self.modules():
             if isinstance(module, nn.Conv2d):
-                if 'Conv2d' in initializations:
+                if initializations is not None and 'Conv2d' in initializations:
                     nn.init.constant_(module.bias, 0.0)
                     (eval(initializations['Conv2d'][0])(*[module.weight, *initializations['Conv2d'][1:]]))
                 else:
@@ -337,7 +328,7 @@ class net_vgg(nn.Sequential):
                     nn.init.xavier_normal_(module.weight)
 
             if isinstance(module, nn.Linear):
-                if 'Linear' in initializations:
+                if initializations is not None and 'Linear' in initializations:
                     nn.init.constant_(module.bias, 0.0)
                     (eval(initializations['Linear'][0])(*[module.weight, *initializations['Linear'][1:]]))
                 else:
@@ -381,7 +372,7 @@ class net_cifar100_allcnnc(nn.Sequential):
         # init the layers
         for module in self.modules():
             if isinstance(module, nn.Conv2d):
-                if 'Conv2d' in initializations:
+                if initializations is not None and 'Conv2d' in initializations:
                     nn.init.constant_(module.bias, 0.0)
                     (eval(initializations['Conv2d'][0])(*[module.weight, *initializations['Conv2d'][1:]]))
                 else:
@@ -423,7 +414,7 @@ class net_wrn(nn.Sequential):
         # initialisation
         for module in self.modules():
             if isinstance(module, nn.Conv2d):
-                if 'Conv2d' in initializations:
+                if initializations is not None and 'Conv2d' in initializations:
                     nn.init.constant_(module.bias, 0.0)
                     (eval(initializations['Conv2d'][0])(*[module.weight, *initializations['Conv2d'][1:]]))
                 else:
@@ -434,7 +425,7 @@ class net_wrn(nn.Sequential):
                 nn.init.constant_(module.running_mean, 0.0)
                 nn.init.constant_(module.running_var, 1.0)
             if isinstance(module, nn.Linear):
-                if 'Linear' in initializations:
+                if initializations is not None and 'Linear' in initializations:
                     nn.init.constant_(module.bias, 0.0)
                     (eval(initializations['Linear'][0])(*[module.weight, *initializations['Linear'][1:]]))
                 else:
@@ -510,7 +501,7 @@ class net_mlp(nn.Sequential):
 
         for module in self.modules():
             if isinstance(module, nn.Linear):
-                if 'Linear' in initializations:
+                if initializations is not None and 'Linear' in initializations:
                     nn.init.constant_(module.bias, 0.0)
                     (eval(initializations['Linear'][0])(*[module.weight, *initializations['Linear'][1:]]))
                 else:

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import torch
 
+
 DEFAULT_DEVICE = "cuda" if torch.cuda.is_available() else 'cpu'
 NUM_WORKERS = 0
 IS_DETERMINISTIC = True
-
+print(DEFAULT_DEVICE)
 
 def get_is_deterministic():
     return IS_DETERMINISTIC
