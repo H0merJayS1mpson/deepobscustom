@@ -13,7 +13,7 @@ class cifar10_resi50(TestProblem):
         """Set up the vanilla CNN test problem on Cifar-10."""
         self.data = cifar10(self._batch_size)
         self.loss_function = nn.CrossEntropyLoss
-        self.net = resnet50()
+        self.net = resnet50(num_classes=10)
         self.net.to(self._device)
         self.regularization_groups = self.get_regularization_groups()
 
