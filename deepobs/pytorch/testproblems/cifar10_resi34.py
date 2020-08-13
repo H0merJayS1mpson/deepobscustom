@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-"""A vanilla CNN architecture for CIFAR-10."""
 
 from torch import nn
 from .testproblems_modules import resnet34
