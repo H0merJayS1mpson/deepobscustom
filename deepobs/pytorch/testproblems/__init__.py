@@ -23,3 +23,6 @@ from .fmnist_mlp import fmnist_mlp
 from .svhn_wrn164 import svhn_wrn164
 
 from .mnist_logreg import mnist_logreg
+
+from .cifar10_resi34 import cifar10_resi34
+from .cifar10_resi50 import cifar10_resi50

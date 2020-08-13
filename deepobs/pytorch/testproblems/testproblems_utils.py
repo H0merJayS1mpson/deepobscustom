@@ -302,3 +302,5 @@ class residual_block(nn.Module):
         x += identity
 
         return x
+
+
