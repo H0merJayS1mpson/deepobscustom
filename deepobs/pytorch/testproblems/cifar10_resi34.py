@@ -70,7 +70,6 @@ class cifar10_resi34(TestProblem):
 
         for parameters_name, parameters in self.net.named_parameters():
             # penalize only the non bias layer parameters
-            print(parameters_name, parameters)
             if 'bias' not in parameters_name:
                 group_dict[l2].append(parameters)
             else:
