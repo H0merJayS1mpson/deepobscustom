@@ -809,15 +809,15 @@ class CustomLearningRateScheduleRunner(PTRunner):
         print("********************************")
         print("Evaluating after {0:d} of {1:d} epochs...".format(epoch_count, num_epochs))
 
-        loss_, acc_ = CustomRunner.evaluate(tproblem, phase='TRAIN', get_next_batch=get_next_batch)
+        loss_, acc_ = CustomLearningRateScheduleRunner.evaluate(tproblem, phase='TRAIN', get_next_batch=get_next_batch)
         train_losses.append(loss_)
         train_accuracies.append(acc_)
 
-        loss_, acc_ = CustomRunner.evaluate(tproblem, phase='VALID', get_next_batch=get_next_batch)
+        loss_, acc_ = CustomLearningRateScheduleRunner.evaluate(tproblem, phase='VALID', get_next_batch=get_next_batch)
         valid_losses.append(loss_)
         valid_accuracies.append(acc_)
 
-        loss_, acc_ = CustomRunner.evaluate(tproblem, phase='TEST', get_next_batch=get_next_batch)
+        loss_, acc_ = CustomLearningRateScheduleRunner.evaluate(tproblem, phase='TEST', get_next_batch=get_next_batch)
         test_losses.append(loss_)
         test_accuracies.append(acc_)
 
