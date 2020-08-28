@@ -609,8 +609,8 @@ class ResNet(nn.Module):
         self.do = nn.Dropout(0.5)
 
         if initializations is not None and 'Conv2d' in initializations:
-            for m in self.modules():
-                if isinstance(m, nn.Conv2d):
+            for module in self.modules():
+                if isinstance(module, nn.Conv2d):
                     (eval(initializations['Conv2d'][0])(*[module.weight, *initializations['Conv2d'][1:]]))
                 # elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
                 #     nn.init.constant_(m.weight, 1)
