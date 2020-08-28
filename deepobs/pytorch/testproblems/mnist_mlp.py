@@ -50,7 +50,6 @@ class mnist_mlp(UnregularizedTestproblem):
             )
 
     def set_up(self, initializations=None):
-        print(initializations)
         """Sets up the vanilla CNN test problem on MNIST."""
         self.data = mnist(self._batch_size)
         self.loss_function = nn.CrossEntropyLoss

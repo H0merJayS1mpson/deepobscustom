@@ -56,7 +56,7 @@ class TestProblem(abc.ABC):
         self.net = None
         self.regularization_groups = None
         self.initialization = initialization
-
+        self.current_batch = None
         self._batch_count = 0
 
     def train_init_op(self):
@@ -91,15 +91,17 @@ class TestProblem(abc.ABC):
         self.phase = "test"
         self.net.eval()
 
-    def _get_next_batch(self):
+    def _get_next_batch(self, origin=''):
         """Returns the next batch from the iterator."""
-        batch = next(self._iterator)
         self._batch_count += 1
+        batch = next(self._iterator)
+        self.current_batch = batch
+        # print(self._batch_count, "   ", origin)
         return batch
 
     def get_batch_loss_and_accuracy_func(self,
                                          reduction='mean',
-                                         add_regularization_if_available=True):
+                                         add_regularization_if_available=True, next_batch=True):
         """Get new batch and create forward function that calculates loss and accuracy (if available)
         on that batch. This is a default implementation for image classification.
         Testproblems with different calculation routines (e.g. RNNs) overwrite this method accordingly.
@@ -110,16 +112,26 @@ class TestProblem(abc.ABC):
             add_regularization_if_available (bool): If true, regularization is added to the loss.
         Returns:
             callable:  The function that calculates the loss/accuracy on the current batch.
+            :param next_batch: if an Optimizer requires to run the loss function multiple times we don't want
+            to fetch a new batch for every loss function call. Therefore next_batch indicates if we want a new batch
+            or need to compute something using the "old" i.e. the self.current_batch batch.
         """
+        if next_batch:
+            inputs, labels = self._get_next_batch()
+            inputs = inputs.to(self._device)
+            labels = labels.to(self._device)
+        else:
+            inputs, labels = self.current_batch
+            inputs = inputs.to(self._device)
+            labels = labels.to(self._device)
 
-        inputs, labels = self._get_next_batch()
-        inputs = inputs.to(self._device)
-        labels = labels.to(self._device)
+        #print(next_batch, "  ", labels)
 
         def forward_func():
             correct = 0.0
             total = 0.0
 
+            #print(self.phase)
             # in evaluation phase is no gradient needed
             if self.phase in ["train_eval", "test", "valid"]:
                 with torch.no_grad():
@@ -146,7 +158,7 @@ class TestProblem(abc.ABC):
 
     def get_batch_loss_and_accuracy(self,
                                     reduction='mean',
-                                    add_regularization_if_available=True):
+                                    add_regularization_if_available=True, get_next_batch=True):
         """Gets a new batch and calculates the loss and accuracy (if available)
         on that batch.
 
@@ -157,10 +169,12 @@ class TestProblem(abc.ABC):
 
         Returns:
             float/torch.tensor, float: loss and accuracy of the model on the current batch.
+            :param get_next_batch:
         """
+
         forward_func = self.get_batch_loss_and_accuracy_func(
             reduction=reduction,
-            add_regularization_if_available=add_regularization_if_available)
+            add_regularization_if_available=add_regularization_if_available, next_batch=get_next_batch)
 
         return forward_func()
 

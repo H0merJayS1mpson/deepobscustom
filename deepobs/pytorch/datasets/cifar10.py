@@ -12,7 +12,7 @@ training_transform_not_augmented = transforms.Compose([
                     ])
 
 training_transform_augmented = transforms.Compose([
-                    transforms.Pad(padding=2),
+                    transforms.Pad(padding=4),
                     transforms.RandomCrop(size=(32,32)),
                     transforms.RandomHorizontalFlip(),
                     transforms.ColorJitter(brightness=63. / 255., saturation=[0.5,1.5], contrast=[0.2,1.8]),

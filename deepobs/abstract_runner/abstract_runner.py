@@ -103,6 +103,8 @@ class Runner(abc.ABC):
                  'train_accuracies': train_accuracies, \
                  } \
             where <...meta data...> stores the run args.
+            :param testproblem:
+            :param initializations:
 
         """
         exists, matches = self.run_exists(
@@ -408,10 +410,16 @@ class Runner(abc.ABC):
         """
 
         for hp_name, hp_value in sorted(optimizer_hyperparams.items()):
-            run_folder_name += "__{0:s}".format(hp_name)
-            run_folder_name += "__{0:s}".format(
-                float2str(hp_value) if isinstance(hp_value, float
-                                                  ) else str(hp_value))
+            if isinstance(hp_value, str):
+                if hp_value[0] == '/':
+                    run_folder_name += "__{0:s}".format(hp_name)
+                    run_folder_name += ("__" + hp_value.replace('/', "-"))
+            else:
+                run_folder_name += "__{0:s}".format(hp_name)
+                run_folder_name += "__{0:s}".format(
+                    float2str(hp_value) if isinstance(hp_value, float
+                                                      ) else str(hp_value))
+        print(run_folder_name)
         return run_folder_name
 
     def parse_args(self, testproblem, initializations, hyperparams, batch_size, num_epochs,
@@ -582,7 +590,6 @@ class Runner(abc.ABC):
         # add everything mandatory to the name
         run_folder_name = "num_epochs__" + str(
             num_epochs) + "__batch_size__" + str(batch_size)
-        print(initializations)
         if initializations is not None:
             run_folder_name += "__initializations__" + str(initializations)
         if weight_decay is not None:
@@ -616,7 +623,7 @@ class Runner(abc.ABC):
 
         # remove test accuracy if it is not available
         if 'test_accuracies' in output:
-            if all(output['test_accuracies']) == 0:
+            if not any(output['test_accuracies']):
                 del output['test_accuracies']
                 del output['train_accuracies']
                 try:
