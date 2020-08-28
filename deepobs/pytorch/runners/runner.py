@@ -679,12 +679,12 @@ class CustomLearningRateScheduleRunner(PTRunner):
                 nargs="+",
                 type=int,
                 help="""One or more epoch numbers (positive integers) that mark
-          learning rate changes. The base learning rate has to be passed via
-          '--learing_rate' and the factors by which to change have to be passed
-          via '--lr_sched_factors'. Example: '--lr 0.3 --lr_sched_epochs 50 100
-          --lr_sched_factors 0.1 0.01' will start with a learning rate of 0.3,
-          then decrease to 0.1*0.3=0.03 after training for 50 epochs, and
-          decrease to 0.01*0.3=0.003' after training for 100 epochs.""")
+                learning rate changes. The base learning rate has to be passed via
+                '--learing_rate' and the factors by which to change have to be passed
+                via '--lr_sched_factors'. Example: '--lr 0.3 --lr_sched_epochs 50 100
+                --lr_sched_factors 0.1 0.01' will start with a learning rate of 0.3,
+                then decrease to 0.1*0.3=0.03 after training for 50 epochs, and
+                decrease to 0.01*0.3=0.003' after training for 100 epochs.""")
 
         try:
             args['lr_sched_factors'] = training_params['lr_sched_factors']
@@ -695,12 +695,12 @@ class CustomLearningRateScheduleRunner(PTRunner):
                 type=float,
                 help=
                 """One or more factors (floats) by which to change the learning
-          rate. The base learning rate has to be passed via '--learing_rate' and
-          the epochs at which to change the learning rate have to be passed via
-          '--lr_sched_factors'. Example: '--lr 0.3 --lr_sched_epochs 50 100
-          --lr_sched_factors 0.1 0.01' will start with a learning rate of 0.3,
-          then decrease to 0.1*0.3=0.03 after training for 50 epochs, and
-          decrease to 0.01*0.3=0.003' after training for 100 epochs.""")
+                rate. The base learning rate has to be passed via '--learing_rate' and
+                the epochs at which to change the learning rate have to be passed via
+                '--lr_sched_factors'. Example: '--lr 0.3 --lr_sched_epochs 50 100
+                --lr_sched_factors 0.1 0.01' will start with a learning rate of 0.3,
+                then decrease to 0.1*0.3=0.03 after training for 50 epochs, and
+                decrease to 0.01*0.3=0.003' after training for 100 epochs.""")
 
     def training(self,
                  tproblem,
