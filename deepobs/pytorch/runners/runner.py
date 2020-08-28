@@ -433,7 +433,7 @@ class CustomRunner(PTRunner):
     hyperparams. It should be used as a template to implement custom runners.
     """
 
-    def evaluate(self, tproblem, phase, get_next_batch=True):
+    def evaluate(tproblem, phase, get_next_batch=True):
         """Evaluates the performance of the current state of the model
         of the testproblem instance.
         Has to be called in the beggining of every epoch within the
@@ -745,6 +745,83 @@ class CustomLearningRateScheduleRunner(PTRunner):
         # Set up the testproblem.
         tproblem.set_up(initializations)
         return tproblem
+
+    def evaluate(tproblem, phase, get_next_batch=True):
+        """Evaluates the performance of the current state of the model
+        of the testproblem instance.
+        Has to be called in the beggining of every epoch within the
+        training method. Returns the losses and accuracies.
+
+        Args:
+            tproblem (testproblem): The testproblem instance to evaluate
+            phase (str): The phase of the evaluation. Must be one of 'TRAIN', 'VALID' or 'TEST'
+        Returns:
+            float: The loss of the current state.
+            float: The accuracy of the current state.
+            :param get_next_batch:
+
+        """
+
+        if phase == 'TEST':
+            tproblem.test_init_op()
+            msg = "TEST:"
+        elif phase == 'TRAIN':
+            tproblem.train_eval_init_op()
+            msg = "TRAIN:"
+        elif phase == 'VALID':
+            tproblem.valid_init_op()
+            msg = "VALID:"
+        # evaluation loop over every batch of the corresponding evaluation set
+        loss = 0.0
+        accuracy = 0.0
+        batchCount = 0.0
+        while True:
+            try:
+                batch_loss, batch_accuracy = tproblem.get_batch_loss_and_accuracy(get_next_batch=get_next_batch)
+                batchCount += 1.0
+                loss += batch_loss.item()
+                accuracy += batch_accuracy
+            except StopIteration:
+                break
+
+        loss /= batchCount
+        accuracy /= batchCount
+        if accuracy != 0.0:
+            print("{0:s} loss {1:g}, acc {2:f}".format(msg, loss, accuracy))
+        else:
+            print("{0:s} loss {1:g}".format(msg, loss))
+
+        return loss, accuracy
+
+
+    def evaluate_all(self,
+                     epoch_count,
+                     num_epochs,
+                     tproblem,
+                     train_losses,
+                     valid_losses,
+                     test_losses,
+                     train_accuracies,
+                     valid_accuracies,
+                     test_accuracies,
+                     get_next_batch=True):
+
+        print("********************************")
+        print("Evaluating after {0:d} of {1:d} epochs...".format(epoch_count, num_epochs))
+
+        loss_, acc_ = CustomRunner.evaluate(tproblem, phase='TRAIN', get_next_batch=get_next_batch)
+        train_losses.append(loss_)
+        train_accuracies.append(acc_)
+
+        loss_, acc_ = CustomRunner.evaluate(tproblem, phase='VALID', get_next_batch=get_next_batch)
+        valid_losses.append(loss_)
+        valid_accuracies.append(acc_)
+
+        loss_, acc_ = CustomRunner.evaluate(tproblem, phase='TEST', get_next_batch=get_next_batch)
+        test_losses.append(loss_)
+        test_accuracies.append(acc_)
+
+        print("********************************")
 
     def training(self,
                  tproblem,
