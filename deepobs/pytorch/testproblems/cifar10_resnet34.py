@@ -57,7 +57,7 @@ class cifar10_resnet34(UnregularizedTestproblem):
         """Set up the vanilla CNN test problem on Cifar-10."""
         self.data = cifar10(self._batch_size)
         self.loss_function = nn.CrossEntropyLoss
-        self.net = ResNet34()
+        self.net = ResNet34(initializations=initializations)
         self.net.to(self._device)
         self.net = torch.nn.DataParallel(self.net)
         self.regularization_groups = self.get_regularization_groups()

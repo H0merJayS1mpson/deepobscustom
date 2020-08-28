@@ -33,7 +33,7 @@ class PTRunner(Runner):
         return
 
     @staticmethod
-    def create_testproblem(testproblem, initializations , batch_size, weight_decay, random_seed):
+    def create_testproblem(testproblem, initializations, batch_size, weight_decay, random_seed):
         """Sets up the deepobs.pytorch.testproblems.testproblem instance.
 
         Args:
@@ -148,7 +148,7 @@ class PTRunner(Runner):
         valid_losses.append(loss_)
         valid_accuracies.append(acc_)
 
-        loss_, acc_ = self.evaluate(tproblem, phase='TEST',get_next_batch=get_next_batch)
+        loss_, acc_ = self.evaluate(tproblem, phase='TEST', get_next_batch=get_next_batch)
         test_losses.append(loss_)
         test_accuracies.append(acc_)
 
@@ -297,8 +297,7 @@ class LearningRateScheduleRunner(PTRunner):
                 "--lr_sched_factors",
                 nargs="+",
                 type=float,
-                help=
-                """One or more factors (floats) by which to change the learning
+                help="""One or more factors (floats) by which to change the learning
           rate. The base learning rate has to be passed via '--learing_rate' and
           the epochs at which to change the learning rate have to be passed via
           '--lr_sched_factors'. Example: '--lr 0.3 --lr_sched_epochs 50 100
@@ -434,7 +433,7 @@ class CustomRunner(PTRunner):
     hyperparams. It should be used as a template to implement custom runners.
     """
 
-    def evaluate(tproblem, phase, get_next_batch=True):
+    def evaluate(self, tproblem, phase, get_next_batch=True):
         """Evaluates the performance of the current state of the model
         of the testproblem instance.
         Has to be called in the beggining of every epoch within the
@@ -463,7 +462,6 @@ class CustomRunner(PTRunner):
         loss = 0.0
         accuracy = 0.0
         batchCount = 0.0
-        i = 0
         while True:
             try:
                 batch_loss, batch_accuracy = tproblem.get_batch_loss_and_accuracy(get_next_batch=get_next_batch)
@@ -620,7 +618,6 @@ class CustomRunner(PTRunner):
                         return batch_loss
                     batch_loss = opt.step(closure)
 
-
                     if batch_count % train_log_interval == 0:
                         minibatch_train_losses.append(batch_loss.item())
                         if print_train_iter:
@@ -672,52 +669,6 @@ class CustomLearningRateScheduleRunner(PTRunner):
     def __init__(self, optimizer_class, hyperparameter_names):
 
         super(CustomLearningRateScheduleRunner, self).__init__(optimizer_class, hyperparameter_names)
-        
-        
-        
-    def create_testproblem(self, testproblem, initializations, batch_size, weight_decay, random_seed):
-	"""Sets up the deepobs.pytorch.testproblems.testproblem instance.
-
-	Args:
-	testproblem (str): The name of the testproblem.
-	batch_size (int): Batch size that is used for training
-	weight_decay (float): Regularization factor
-	random_seed (int): The random seed of the framework
-	:param initializations: dictionary of the initialazation Methods per layer-Name
-
-	Returns:
-	deepobs.pytorch.testproblems.testproblem: An instance of deepobs.pytorch.testproblems.testproblem
-	"""
-	# set the seed and GPU determinism
-	if config.get_is_deterministic():
-	torch.backends.cudnn.deterministic = True
-	torch.backends.cudnn.benchmark = False
-
-	else:
-	torch.backends.cudnn.deterministic = False
-	torch.backends.cudnn.benchmark = True
-	seed(random_seed)
-	np.random.seed(random_seed)
-	torch.manual_seed(random_seed)
-
-	# Find testproblem by name and instantiate with batch size and weight decay.
-	try:
-	testproblem_mod = importlib.import_module(testproblem)
-	testproblem_cls = getattr(testproblem_mod, testproblem)
-	print("Loading local testproblem.")
-	except:
-	testproblem_cls = getattr(testproblems, testproblem)
-
-	# if the user specified a weight decay, use that one
-	if weight_decay is not None:
-	tproblem = testproblem_cls(batch_size, weight_decay)
-	# else use the default of the testproblem
-	else:
-	tproblem = testproblem_cls(batch_size)
-
-	# Set up the testproblem.
-	tproblem.set_up(initializations)
-	return tproblem
 
     def _add_training_params_to_argparse(self, parser, args, training_params):
         try:
@@ -829,19 +780,17 @@ class CustomLearningRateScheduleRunner(PTRunner):
             # set to training mode
             tproblem.train_init_op()
             batch_count = 0
-            
             while True:
                 try:
-                    opt.zero_grad()
-
-                    def closure(backward=True, get_next_batch=True):
-                        #opt.zero_grad()
-                        batch_loss, _ = tproblem.get_batch_loss_and_accuracy(get_next_batch=get_next_batch)
+                    def closure(backward=True):
+                        opt.zero_grad()
+                        batch_loss, _ = tproblem.get_batch_loss_and_accuracy()
                         if backward:
                             batch_loss.backward()
                         return batch_loss
-                    
+
                     batch_loss = opt.step(closure)
+                    opt.step()
 
                     if batch_count % train_log_interval == 0:
                         minibatch_train_losses.append(batch_loss.item())
@@ -1128,7 +1077,7 @@ class PalRunner(PTRunner):
                 #     intitial_loss = criterion(net(inputs), targets)
                 #     print("Initial Loss ", intitial_loss, "batch ID: ", batch_idx)
 
-                def loss_fn(backward=True, Vonwo=''):
+                def loss_fn(backward=True):
                     out_ = net(inputs)
                     # print(batch_idx, inputs[0])
                     loss_ = criterion(out_, targets)
@@ -1181,48 +1130,3 @@ class PalRunner(PTRunner):
             "test_accuracies": test_accuracies
         }
         return output
-            # Evaluate at beginning of epoch.
-            #TODO: Ersetzen mit Alternative
-            # self.evaluate_all(epoch_count,
-            #                   num_epochs,
-            #                   tproblem,
-            #                   train_losses,
-            #                   valid_losses,
-            #                   test_losses,
-            #                   train_accuracies,
-            #                   valid_accuracies,
-            #                   test_accuracies)
-
-            # Break from train loop after the last round of evaluation
-
-            ### Training ###
-
-            # set to training mode
-            # tproblem.train_init_op()
-            # batch_count = 0
-            # while True:
-            #     try:
-            #         opt.zero_grad()
-            #
-            #         def closure(backward=True, get_next_batch=True):
-            #             # opt.zero_grad()
-            #             batch_loss, _ = tproblem.get_batch_loss_and_accuracy(get_next_batch=get_next_batch)
-            #             if backward:
-            #                 batch_loss.backward()
-            #             return batch_loss
-            #
-            #         batch_loss = opt.step(closure)
-            #
-            #         if batch_count % train_log_interval == 0:
-            #             minibatch_train_losses.append(batch_loss.item())
-            #             if print_train_iter:
-            #                 print(
-            #                     "Epoch {0:d}, step {1:d}: loss {2:g}".format(epoch_count, batch_count, batch_loss))
-            #             if tb_log:
-            #                 summary_writer.add_scalar('loss', batch_loss.item(), global_step)
-            #
-            #         batch_count += 1
-            #         global_step += 1
-            #
-            #     except StopIteration:
-            #         break

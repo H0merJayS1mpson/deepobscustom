@@ -593,7 +593,7 @@ def DenseNet_Cifar():
 
 
 class ResNet(nn.Module):
-    def __init__(self, num_blocks, num_classes=10):
+    def __init__(self, num_blocks, num_classes=10, initializations=None):
         super().__init__()
         block = BasicBlock
         self.in_planes = 64
@@ -606,14 +606,15 @@ class ResNet(nn.Module):
         self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
         self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
         self.linear = nn.Linear(512 * block.expansion, num_classes)
-        #self.do    = nn.Dropout(0.5)
-        #
-        # for m in self.modules():
-        #     if isinstance(m, nn.Conv2d):
-        #         nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-        #     elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
-        #         nn.init.constant_(m.weight, 1)
-        #         nn.init.constant_(m.bias, 0)
+        self.do = nn.Dropout(0.5)
+
+        if initializations is not None and 'Conv2d' in initializations:
+            for m in self.modules():
+                if isinstance(m, nn.Conv2d):
+                    (eval(initializations['Conv2d'][0])(*[module.weight, *initializations['Conv2d'][1:]]))
+                # elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
+                #     nn.init.constant_(m.weight, 1)
+                #     nn.init.constant_(m.bias, 0)
 
         # Zero-initialize the last BN in each residual branch,
         # so that the residual branch starts with zeros, and each residual block behaves like an identity.
@@ -683,5 +684,5 @@ class BasicBlock(nn.Module):
 def ResNet18():
     return ResNet([2, 2, 2, 2], num_classes=10)
 
-def ResNet34():
-    return ResNet([3, 4, 6, 3], num_classes=10)
+def ResNet34(initializations=None):
+    return ResNet([3, 4, 6, 3], num_classes=10, initializations=initializations)
