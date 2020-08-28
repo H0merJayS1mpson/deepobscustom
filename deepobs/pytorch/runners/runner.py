@@ -702,6 +702,50 @@ class CustomLearningRateScheduleRunner(PTRunner):
                 then decrease to 0.1*0.3=0.03 after training for 50 epochs, and
                 decrease to 0.01*0.3=0.003' after training for 100 epochs.""")
 
+    def create_testproblem(self, testproblem, initializations, batch_size, weight_decay, random_seed):
+        """Sets up the deepobs.pytorch.testproblems.testproblem instance.
+
+        Args:
+            testproblem (str): The name of the testproblem.
+            batch_size (int): Batch size that is used for training
+            weight_decay (float): Regularization factor
+            random_seed (int): The random seed of the framework
+            :param initializations: dictionary of the initialazation Methods per layer-Name
+
+        Returns:
+            deepobs.pytorch.testproblems.testproblem: An instance of deepobs.pytorch.testproblems.testproblem
+        """
+        # set the seed and GPU determinism
+        if config.get_is_deterministic():
+            torch.backends.cudnn.deterministic = True
+            torch.backends.cudnn.benchmark = False
+
+        else:
+            torch.backends.cudnn.deterministic = False
+            torch.backends.cudnn.benchmark = True
+        seed(random_seed)
+        np.random.seed(random_seed)
+        torch.manual_seed(random_seed)
+
+        # Find testproblem by name and instantiate with batch size and weight decay.
+        try:
+            testproblem_mod = importlib.import_module(testproblem)
+            testproblem_cls = getattr(testproblem_mod, testproblem)
+            print("Loading local testproblem.")
+        except:
+            testproblem_cls = getattr(testproblems, testproblem)
+
+        # if the user specified a weight decay, use that one
+        if weight_decay is not None:
+            tproblem = testproblem_cls(batch_size, weight_decay)
+        # else use the default of the testproblem
+        else:
+            tproblem = testproblem_cls(batch_size)
+
+        # Set up the testproblem.
+        tproblem.set_up(initializations)
+        return tproblem
+
     def training(self,
                  tproblem,
                  hyperparams,
