@@ -415,7 +415,6 @@ class net_wrn(nn.Sequential):
         for module in self.modules():
             if isinstance(module, nn.Conv2d):
                 if initializations is not None and 'Conv2d' in initializations:
-                    nn.init.constant_(module.bias, 0.0)
                     (eval(initializations['Conv2d'][0])(*[module.weight, *initializations['Conv2d'][1:]]))
                 else:
                     nn.init.xavier_uniform_(module.weight)
@@ -470,6 +469,11 @@ class net_quadratic_deep(nn.Module):
         super(net_quadratic_deep, self).__init__()
         self.theta = nn.Parameter(torch.ones(dim, requires_grad = True))
         self.Hessian = Hessian
+        if initializations is not None:
+            init = next(iter(initializations))
+            eval(initializations[init][0])(*[self.theta, *initializations[init][1:]])
+            print(self.theta)
+
 
     def forward(self, x):
         q = self.theta - x
@@ -500,18 +504,21 @@ class net_mlp(nn.Sequential):
         self.add_module('dense4', nn.Linear(100, num_outputs))
 
         for module in self.modules():
-            if isinstance(module, nn.Linear):
-                if initializations is not None and 'Linear' in initializations:
+            if initializations is not None and 'Linear' in initializations:
+                if isinstance(module, nn.Linear):
                     nn.init.constant_(module.bias, 0.0)
-                    (eval(initializations['Linear'][0])(*[module.weight, *initializations['Linear'][1:]]))
-                else:
-                    nn.init.constant_(module.bias, 0.0)
-                    module.weight.data = _truncated_normal_init(module.weight.data, mean = 0, stddev=3e-2)
+                    eval(initializations['Linear'][0])(*[module.weight.data, *initializations['Linear'][1:]])
+                # else:
+                #     nn.init.constant_(module.bias, 0.0)
+                #     module.weight.data = _truncated_normal_init(module.weight.data, mean=0, stddev=3e-2)
+            elif isinstance(module, nn.Linear):
+                nn.init.constant_(module.bias, 0.0)
+                module.weight.data = _truncated_normal_init(module.weight.data, mean = 0, stddev=3e-2)
 
 
 
 class DenseNet(nn.Module):
-    def __init__(self, block, nblocks, growth_rate=12, reduction=0.5, num_classes=10):
+    def __init__(self, block, nblocks, growth_rate=12, reduction=0.5, num_classes=10, initializations=None):
         super().__init__()
         self.growth_rate = growth_rate
 
@@ -541,6 +548,13 @@ class DenseNet(nn.Module):
 
         self.bn = nn.BatchNorm2d(num_planes)
         self.linear = nn.Linear(num_planes, num_classes)
+
+        if initializations is not None:
+            for module in self.modules():
+                if isinstance(module, nn.Conv2d):
+                    eval(initializations['Conv2d'][0])(*[module.weight, *initializations['Conv2d'][1:]])
+                elif isinstance(module, nn.Linear):
+                    eval(initializations['Linear'][0])(*[module.weight, *initializations['Linear'][1:]])
 
     def _make_dense_layers(self, block, in_planes, nblock):
         layers = []
@@ -588,8 +602,8 @@ class Transition(nn.Module):
         return out
 
 
-def DenseNet_Cifar():
-    return DenseNet(Bottleneck_DenseNet, [6,12,24,16], growth_rate=12, num_classes=10)
+def DenseNet_Cifar(num_classes=10, initializations=None):
+    return DenseNet(Bottleneck_DenseNet, [6,12,24,16], growth_rate=12, num_classes=num_classes, initializations=initializations)
 
 
 class ResNet(nn.Module):
@@ -606,15 +620,14 @@ class ResNet(nn.Module):
         self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
         self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
         self.linear = nn.Linear(512 * block.expansion, num_classes)
-        self.do = nn.Dropout(0.5)
 
         if initializations is not None and 'Conv2d' in initializations:
             for module in self.modules():
                 if isinstance(module, nn.Conv2d):
                     (eval(initializations['Conv2d'][0])(*[module.weight, *initializations['Conv2d'][1:]]))
-                # elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
-                #     nn.init.constant_(m.weight, 1)
-                #     nn.init.constant_(m.bias, 0)
+                elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
+                    nn.init.constant_(m.weight, 1)
+                    nn.init.constant_(m.bias, 0)
 
         # Zero-initialize the last BN in each residual branch,
         # so that the residual branch starts with zeros, and each residual block behaves like an identity.
@@ -642,7 +655,6 @@ class ResNet(nn.Module):
         out = self.layer4(out)
         out = F.avg_pool2d(out, 4)
         out = out.view(out.size(0), -1)
-        #out = self.do(out)
         out = self.linear(out)
         return out
 
@@ -681,8 +693,10 @@ class BasicBlock(nn.Module):
         out = F.relu(out)
         return out
 
-def ResNet18():
-    return ResNet([2, 2, 2, 2], num_classes=10)
 
-def ResNet34(initializations=None):
-    return ResNet([3, 4, 6, 3], num_classes=10, initializations=initializations)
+def ResNet18(num_classes=10, initializations=None):
+    return ResNet([2, 2, 2, 2], num_classes=num_classes, initializations=initializations)
+
+
+def ResNet34(num_classes=10, initializations=None):
+    return ResNet([3, 4, 6, 3], num_classes=num_classes, initializations=initializations)

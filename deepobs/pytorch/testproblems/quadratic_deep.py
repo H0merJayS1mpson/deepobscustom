@@ -115,7 +115,7 @@ class quadratic_deep(UnregularizedTestproblem):
 
     def get_batch_loss_and_accuracy_func(self,
                                          reduction='mean',
-                                         add_regularization_if_available=True):
+                                         add_regularization_if_available=True, get_next_batch=True):
         """Get new batch and create forward function that calculates loss and accuracy (if available)
         on that batch.
 
@@ -126,9 +126,12 @@ class quadratic_deep(UnregularizedTestproblem):
         Returns:
             callable:  The function that calculates the loss/accuracy on the current batch.
         """
-
-        inputs = self._get_next_batch()[0]
-        inputs = inputs.to(self._device)
+        if get_next_batch:
+            inputs = self._get_next_batch()[0]
+            inputs = inputs.to(self._device)
+        else:
+            inputs = self.current_batch[0]
+            inputs = inputs.to(self._device)
         
         def forward_func():
             # in evaluation phase is no gradient needed

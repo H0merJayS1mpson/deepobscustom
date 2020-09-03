@@ -304,3 +304,5 @@ class residual_block(nn.Module):
         return x
 
 
+def find_init(module, init):
+    return isinstance(module, eval(init))

@@ -107,24 +107,50 @@ class Runner(abc.ABC):
             :param initializations:
 
         """
-        exists, matches = self.run_exists(
-            testproblem=testproblem,
-            initializations=initializations,
-            hyperparams=hyperparams,
-            batch_size=batch_size,
-            num_epochs=num_epochs,
-            random_seed=random_seed,
-            data_dir=data_dir,
-            output_dir=output_dir,
-            weight_decay=weight_decay,
-            no_logs=no_logs,
-            train_log_interval=train_log_interval,
-            print_train_iter=print_train_iter,
-            tb_log=tb_log,
-            tb_log_dir=tb_log_dir,
-            **training_params)
 
-        require_run = not (exists and skip_if_exists)
+        try:
+            exists, matches = self.run_exists(
+                testproblem=testproblem,
+                initializations=initializations,
+                hyperparams=hyperparams,
+                batch_size=batch_size,
+                num_epochs=num_epochs,
+                random_seed=random_seed,
+                data_dir=data_dir,
+                output_dir=output_dir,
+                weight_decay=weight_decay,
+                no_logs=no_logs,
+                train_log_interval=train_log_interval,
+                print_train_iter=print_train_iter,
+                tb_log=tb_log,
+                tb_log_dir=tb_log_dir,
+                **training_params)
+
+            require_run = not (exists and skip_if_exists)
+        except Exception as exception:
+            print("!!!! checking if run already exists has been omitted !!!!", exception)
+            require_run = True
+
+        # exists, matches = self.run_exists(
+        #     testproblem=testproblem,
+        #     initializations=initializations,
+        #     hyperparams=hyperparams,
+        #     batch_size=batch_size,
+        #     num_epochs=num_epochs,
+        #     random_seed=random_seed,
+        #     data_dir=data_dir,
+        #     output_dir=output_dir,
+        #     weight_decay=weight_decay,
+        #     no_logs=no_logs,
+        #     train_log_interval=train_log_interval,
+        #     print_train_iter=print_train_iter,
+        #     tb_log=tb_log,
+        #     tb_log_dir=tb_log_dir,
+        #     **training_params)
+        #
+        # require_run = not (exists and skip_if_exists)
+        #
+        # require_run = True
 
         if require_run:
             args = self.parse_args(

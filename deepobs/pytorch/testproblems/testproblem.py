@@ -91,17 +91,16 @@ class TestProblem(abc.ABC):
         self.phase = "test"
         self.net.eval()
 
-    def _get_next_batch(self, origin=''):
+    def _get_next_batch(self):
         """Returns the next batch from the iterator."""
         self._batch_count += 1
         batch = next(self._iterator)
         self.current_batch = batch
-        # print(self._batch_count, "   ", origin)
         return batch
 
     def get_batch_loss_and_accuracy_func(self,
                                          reduction='mean',
-                                         add_regularization_if_available=True, next_batch=True):
+                                         add_regularization_if_available=True, get_next_batch=True):
         """Get new batch and create forward function that calculates loss and accuracy (if available)
         on that batch. This is a default implementation for image classification.
         Testproblems with different calculation routines (e.g. RNNs) overwrite this method accordingly.
@@ -116,7 +115,7 @@ class TestProblem(abc.ABC):
             to fetch a new batch for every loss function call. Therefore next_batch indicates if we want a new batch
             or need to compute something using the "old" i.e. the self.current_batch batch.
         """
-        if next_batch:
+        if get_next_batch:
             inputs, labels = self._get_next_batch()
             inputs = inputs.to(self._device)
             labels = labels.to(self._device)
@@ -125,13 +124,11 @@ class TestProblem(abc.ABC):
             inputs = inputs.to(self._device)
             labels = labels.to(self._device)
 
-        #print(next_batch, "  ", labels)
 
         def forward_func():
             correct = 0.0
             total = 0.0
 
-            #print(self.phase)
             # in evaluation phase is no gradient needed
             if self.phase in ["train_eval", "test", "valid"]:
                 with torch.no_grad():
@@ -174,7 +171,7 @@ class TestProblem(abc.ABC):
 
         forward_func = self.get_batch_loss_and_accuracy_func(
             reduction=reduction,
-            add_regularization_if_available=add_regularization_if_available, next_batch=get_next_batch)
+            add_regularization_if_available=add_regularization_if_available, get_next_batch=get_next_batch)
 
         return forward_func()
 
