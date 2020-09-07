@@ -108,28 +108,29 @@ class Runner(abc.ABC):
 
         """
 
-        try:
-            exists, matches = self.run_exists(
-                testproblem=testproblem,
-                initializations=initializations,
-                hyperparams=hyperparams,
-                batch_size=batch_size,
-                num_epochs=num_epochs,
-                random_seed=random_seed,
-                data_dir=data_dir,
-                output_dir=output_dir,
-                weight_decay=weight_decay,
-                no_logs=no_logs,
-                train_log_interval=train_log_interval,
-                print_train_iter=print_train_iter,
-                tb_log=tb_log,
-                tb_log_dir=tb_log_dir,
-                **training_params)
+        # try:
+        #     exists, matches = self.run_exists(
+        #         testproblem=testproblem,
+        #         initializations=initializations,
+        #         hyperparams=hyperparams,
+        #         batch_size=batch_size,
+        #         num_epochs=num_epochs,
+        #         random_seed=random_seed,
+        #         data_dir=data_dir,
+        #         output_dir=output_dir,
+        #         weight_decay=weight_decay,
+        #         no_logs=no_logs,
+        #         train_log_interval=train_log_interval,
+        #         print_train_iter=print_train_iter,
+        #         tb_log=tb_log,
+        #         tb_log_dir=tb_log_dir,
+        #         **training_params)
+        #
+        #     require_run = not (exists and skip_if_exists)
+        # except Exception as exception:
+        #     print("!!!! checking if run already exists has been omitted !!!!", exception)
 
-            require_run = not (exists and skip_if_exists)
-        except Exception as exception:
-            print("!!!! checking if run already exists has been omitted !!!!", exception)
-            require_run = True
+        require_run = True
 
         # exists, matches = self.run_exists(
         #     testproblem=testproblem,
@@ -223,7 +224,7 @@ class Runner(abc.ABC):
                                print_train_iter, train_log_interval, tb_log,
                                tb_log_dir, **training_params)
 
-        output = self._post_process_output(output, testproblem, batch_size,
+        output = self._post_process_output(output, testproblem, initializations, batch_size,
                                            num_epochs, random_seed,
                                            weight_decay,
                                            hyperparams_before_training,
@@ -445,7 +446,6 @@ class Runner(abc.ABC):
                 run_folder_name += "__{0:s}".format(
                     float2str(hp_value) if isinstance(hp_value, float
                                                       ) else str(hp_value))
-        print(run_folder_name)
         return run_folder_name
 
     def parse_args(self, testproblem, initializations, hyperparams, batch_size, num_epochs,
@@ -642,7 +642,7 @@ class Runner(abc.ABC):
     def _filename_no_date(random_seed):
         return "random_seed__{0:d}__".format(random_seed)
 
-    def _post_process_output(self, output, testproblem, batch_size, num_epochs,
+    def _post_process_output(self, output, testproblem, initializations, batch_size, num_epochs,
                              random_seed, weight_decay, hyperparams,
                              **training_params):
         """Ensures that for both frameworks the structure of the output is the same"""
