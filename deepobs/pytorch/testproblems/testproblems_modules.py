@@ -625,7 +625,7 @@ class ResNet(nn.Module):
             for module in self.modules():
                 if isinstance(module, nn.Conv2d):
                     (eval(initializations['Conv2d'][0])(*[module.weight, *initializations['Conv2d'][1:]]))
-                elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
+                elif isinstance(module, (nn.BatchNorm2d, nn.GroupNorm)):
                     nn.init.constant_(m.weight, 1)
                     nn.init.constant_(m.bias, 0)
 
